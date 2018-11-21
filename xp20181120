@@ -1,0 +1,185 @@
+import pandas as pd
+import glob
+
+folder='path'
+
+#Diameter: Control vs TMK mutant
+
+dialist=[]
+#diameter data from control
+diacontrol=glob.glob(folder+'CTR/*_objects.csv')
+for diaCTRfile in diacontrol:
+    dia=pd.read_csv(diaCTRfile,usecols=[0,2])
+    dia['trt']='ctr'
+    dialist.append(dia)
+#diameter data from tmk mutant
+diatmk=glob.glob(folder+'tmk mutant/*_objects.csv')
+for diaTMKfile in diatmk:
+    dia=pd.read_csv(diaTMKfile,usecols=[0,2])
+    dia['trt']='tmk'
+    dialist.append(dia)
+
+#combine control and tmk mutant track data into one dataframe
+diameter=pd.concat(dialist,axis=0,ignore_index=True)
+diameter.set_index(['trt','ImageName'],inplace=True)
+
+#extract data from datafrom
+diactr=diameter.DiameterX.loc['ctr']
+diatmk=diameter.DiameterX.loc['tmk']
+
+#Calculation
+dia_ctr_total=diactr.groupby(level=0).count()
+dia_tmk_total=diatmk.groupby(level=0).count()
+
+dia_ctr_avg=diactr.groupby(level=0).mean()
+dia_tmk_avg=diatmk.groupby(level=0).mean()
+
+dia_ctr_300=diactr[diactr>0.3].groupby(level=0).count()
+dia_tmk_300=diatmk[diatmk>0.3].groupby(level=0).count()
+
+dia_ctr_300freq=dia_ctr_300/dia_ctr_total
+dia_tmk_300freq=dia_tmk_300/dia_tmk_total
+
+#
+dia_var_list=[dia_ctr_avg, dia_tmk_avg,
+              dia_ctr_300, dia_tmk_300,
+              dia_ctr_300freq, dia_tmk_300freq]
+dia_var_name=['dia_ctr_avg', 'dia_tmk_avg',
+              'dia_ctr_300', 'dia_tmk_300',
+              'dia_ctr_300freq', 'dia_tmk_300freq']
+
+diameterlist=[]
+for i in dia_var_list:
+    i=i.reset_index().iloc[:,1]
+    diameterlist.append(i)
+    
+diameter_ctr_tmk=pd.concat(diameterlist,axis=1,join='outer')
+diameter_ctr_tmk.columns=dia_var_name
+
+#save to csv file
+diameter_ctr_tmk.to_csv('path/diameter_filename.csv')
+
+"""Duration: Control vs TMK mutant"""
+
+#build a dataframe containing duration and displacement data from both control and tmk mutant
+tracklist=[]
+trackctr=glob.glob(folder+'CTR/*_tracks.csv')
+for trackctrfile in trackctr:
+    track=pd.read_csv(trackctrfile, usecols=[0,2,3])
+    track['trt']='ctr'
+    tracklist.append(track)
+    
+tracktmk=glob.glob(folder+'tmk mutant/*_tracks.csv')
+for tracktmkfile in tracktmk:
+    track=pd.read_csv(tracktmkfile,usecols=[0,2,3])
+    track['trt']='tmk'
+    tracklist.append(track)
+
+#combine control and tmk mutant track data into one dataframe
+track=pd.concat(tracklist,axis=0,ignore_index=True)
+track.set_index(['trt','ImageName'],inplace=True)
+
+#extrack data by trt and columns
+dur_ctr=track.TrackDuration.loc['ctr']
+dur_tmk=track.TrackDuration.loc['tmk']
+dis_ctr=track.TrackDisplacementLength.loc['ctr']
+dis_tmk=track.TrackDisplacementLength.loc['tmk']
+
+"""calculation"""
+#dur control
+dur_ctr_total=dur_ctr.groupby(level=0).count() 
+dur_ctr_avg=dur_ctr.groupby(level=0).mean()  
+
+dur_ctr_150=dur_ctr[dur_ctr<=0.15].groupby(level=0).count()
+dur_ctr_150freq=dur_ctr_150/dur_ctr_total
+dur_ctr_150_450=dur_ctr[(dur_ctr>0.15)&(dur_ctr<0.45)].groupby(level=0).count()
+dur_ctr_150_450freq=dur_ctr_150_450/dur_ctr_total
+dur_ctr_450=dur_ctr[dur_ctr<=0.45].groupby(level=0).count()
+dur_ctr_450freq=dur_ctr_450/dur_ctr_total
+
+dur_ctr_300=dur_ctr[dur_ctr<=0.3].groupby(level=0).count()
+dur_ctr_300freq=dur_ctr_300/dur_ctr_total
+dur_ctr_300_900=dur_ctr[(dur_ctr>0.3)&(dur_ctr<0.9)].groupby(level=0).count()
+dur_ctr_300_900freq=dur_ctr_300_900/dur_ctr_total
+dur_ctr_900=dur_ctr[dur_ctr<=0.9].groupby(level=0).count()
+dur_ctr_900freq=dur_ctr_900/dur_ctr_total
+
+#dur tmk
+dur_tmk_total=dur_tmk.groupby(level=0).count() 
+dur_tmk_avg=dur_tmk.groupby(level=0).mean() 
+
+dur_tmk_150=dur_tmk[dur_tmk<=0.15].groupby(level=0).count()
+dur_tmk_150freq=dur_tmk_150/dur_tmk_total
+dur_tmk_150_450=dur_tmk[(dur_tmk>0.15)&(dur_tmk<0.45)].groupby(level=0).count()
+dur_tmk_150_450freq=dur_tmk_150_450/dur_tmk_total
+dur_tmk_450=dur_tmk[dur_tmk<=0.45].groupby(level=0).count()
+dur_tmk_450freq=dur_tmk_450/dur_tmk_total
+
+dur_tmk_300=dur_tmk[dur_tmk<=0.3].groupby(level=0).count()
+dur_tmk_300freq=dur_tmk_300/dur_tmk_total
+dur_tmk_300_900=dur_tmk[(dur_tmk>0.3)&(dur_tmk<0.9)].groupby(level=0).count()
+dur_tmk_300_900freq=dur_tmk_300_900/dur_tmk_total
+dur_tmk_900=dur_tmk[dur_tmk<=0.9].groupby(level=0).count()
+dur_tmk_900freq=dur_tmk_900/dur_tmk_total
+
+#dis control
+dis_ctr_total=dis_ctr.groupby(level=0).count() 
+dis_ctr_avg=dis_ctr.groupby(level=0).mean()  
+
+dis_ctr_400=dis_ctr[dis_ctr<=0.4].groupby(level=0).count()
+dis_ctr_400freq=dis_ctr_400/dis_ctr_total
+dis_ctr_400_800=dis_ctr[(dis_ctr>0.4)&(dis_ctr<0.8)].groupby(level=0).count()
+dis_ctr_400_800freq=dis_ctr_400_800/dis_ctr_total
+dis_ctr_800=dis_ctr[dis_ctr<=0.8].groupby(level=0).count()
+dis_ctr_800freq=dis_ctr_800/dis_ctr_total
+
+#dis tmk
+dis_tmk_total=dis_tmk.groupby(level=0).count() 
+dis_tmk_avg=dis_tmk.groupby(level=0).mean() 
+
+dis_tmk_400=dis_tmk[dis_tmk<=0.4].groupby(level=0).count()
+dis_tmk_400freq=dis_tmk_400/dis_tmk_total
+dis_tmk_400_800=dis_tmk[(dis_tmk>0.4)&(dis_tmk<0.8)].groupby(level=0).count()
+dis_tmk_400_800freq=dis_tmk_400_800/dis_tmk_total
+dis_tmk_800=dis_tmk[dis_tmk<=0.8].groupby(level=0).count()
+dis_tmk_800freq=dis_tmk_800/dis_tmk_total
+
+"""combine"""
+variable_list=[dur_ctr_avg, dur_tmk_avg, 
+               dur_ctr_150, dur_tmk_150, dur_ctr_150_450, dur_tmk_150_450, dur_ctr_450, dur_tmk_450, 
+               dur_ctr_300, dur_tmk_300, dur_ctr_300_900, dur_tmk_300_900, dur_ctr_900, dur_tmk_900, 
+               dur_ctr_150freq, dur_tmk_150freq, dur_ctr_150_450freq, dur_tmk_150_450freq,
+               dur_ctr_450freq, dur_tmk_450freq, 
+               dur_ctr_300freq, dur_tmk_300freq, dur_ctr_300_900freq, dur_tmk_300_900freq,
+               dur_ctr_900freq, dur_tmk_900freq, 
+               dis_ctr_avg, dis_tmk_avg, 
+               dis_ctr_400, dis_tmk_400, dis_ctr_400_800, dis_tmk_400_800,
+               dis_ctr_800, dis_tmk_800,
+               dis_ctr_400freq, dis_tmk_400freq, dis_ctr_400_800freq, dis_tmk_400_800freq,
+               dis_ctr_800freq, dis_tmk_800freq]
+variable_name=['dur_ctr_avg', 'dur_tmk_avg', 
+               'dur_ctr_150', 'dur_tmk_150', 'dur_ctr_150_450', 'dur_tmk_150_450',
+               'dur_ctr_450', 'dur_tmk_450',
+               'dur_ctr_300', 'dur_tmk_300', 'dur_ctr_300_900', 'dur_tmk_300_900',
+               'dur_ctr_900', 'dur_tmk_900',
+               'dur_ctr_150freq', 'dur_tmk_150freq', 'dur_ctr_150_450freq', 'dur_tmk_150_450freq',
+               'dur_ctr_450freq', 'dur_tmk_450freq',
+               'dur_ctr_300freq', 'dur_tmk_300freq', 'dur_ctr_300_900freq', 'dur_tmk_300_900freq',
+               'dur_ctr_900freq', 'dur_tmk_900freq',
+               'dis_ctr_avg', 'dis_tmk_avg',
+               'dis_ctr_400', 'dis_tmk_400', 'dis_ctr_400_800', 'dis_tmk_400_800',
+               'dis_ctr_800', 'dis_tmk_800',
+               'dis_ctr_400freq', 'dis_tmk_400freq', 'dis_ctr_400_800freq', 'dis_tmk_400_800freq',
+               'dis_ctr_800freq', 'dis_tmk_800freq']
+
+tracklist=[]
+for i in variable_list:
+    i=i.reset_index().iloc[:,1]
+    tracklist.append(i)
+    
+track_ctr_tmk=pd.concat(tracklist,axis=1,join='outer')
+track_ctr_tmk.columns=variable_name
+
+#save to csv file
+track_ctr_tmk.to_csv('path/track_filename.csv')
+
