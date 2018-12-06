@@ -1,0 +1,148 @@
+"""
+these code extract data from sp csv files, calculate, combine and output a single csv file for further analysis
+
+How to use:
+1.put this file within the treatment folder which contains all the sp csv files (generated from imaris software)
+2.run
+3.output a treatment_results.csv in the treatment folder
+
+By J. Liu 
+Dec 3, 2018
+"""
+
+import pandas as pd
+import glob
+import os
+
+pypath=os.path.dirname(os.path.abspath('__file__'))
+
+#treatment
+
+dstrtlist=[]
+#density fromtreatment
+dstreatment=glob.glob(pypath+'/*_OverallStats.csv')
+for dstrtfile in dstreatment:
+    ds=pd.read_csv(dstrtfile,usecols=[0,2])
+    dstrtlist.append(ds)
+dstrtlist=pd.concat(dstrtlist,axis=0,ignore_index=True)
+dstrtlist.set_index(['ImageName'],inplace=True)
+dstrtlist=dstrtlist[~(dstrtlist==0).any(axis=1)]/200/163.84
+trt_ds=dstrtlist.TotalNumberOfSpots
+trt_ds.name='trt_density'
+
+diatrtlist=[]
+#diameter from treatment,read and combine (append then concat) files
+diatreatment=glob.glob(pypath+'/*_objects.csv')
+for diatrtfile in diatreatment:
+    dia=pd.read_csv(diatrtfile,usecols=[0,2])
+    dia['trt']='trt'       
+    diatrtlist.append(dia)
+diatrtlist=pd.concat(diatrtlist,axis=0,ignore_index=True)
+diatrtlist.set_index(['trt','ImageName'],inplace=True)
+
+#diameter from treatment, calculation
+trt_dia_byimg=diatrtlist.groupby(by='ImageName')
+trt_dia_count=trt_dia_byimg.count().DiameterX
+trt_dia_count.name='trt_dia_count'
+trt_dia_avg=trt_dia_byimg.mean().DiameterX
+trt_dia_avg.name='trt_dia_avg'
+
+diatrt=diatrtlist.DiameterX
+trt_dia_300=diatrt[diatrt>0.3].groupby(by='ImageName').count()
+trt_dia_300.name='trt_dia_300'
+trt_dia_300freq=trt_dia_300/trt_dia_count
+trt_dia_300freq.name='trt_dia_300freq'
+
+#track from treatment, read and combine (append then concat) files
+tracktrtlist=[]
+tracktreatment=glob.glob(pypath+'/*_tracks.csv')
+for tracktrtfile in tracktreatment:
+    track=pd.read_csv(tracktrtfile, usecols=[0,2,3])
+    track['trt']='trt'
+    tracktrtlist.append(track)
+tracktrtlist=pd.concat(tracktrtlist,axis=0,ignore_index=True)
+tracktrtlist.set_index(['trt','ImageName'],inplace=True)
+
+#duration from treatment, calculation
+trt_dur_byimg=tracktrtlist.TrackDuration.groupby(by='ImageName')
+trt_dur_count=trt_dur_byimg.count()
+trt_dur_count.name='trt_dur_count'
+trt_dur_avg=trt_dur_byimg.mean()
+trt_dur_avg.name='trt_dur_avg'
+
+#duration bin1
+trt_dur=tracktrtlist.TrackDuration
+trt_dur_150=trt_dur[trt_dur<=0.15].groupby(by='ImageName').count()
+trt_dur_150.name='trt_dur_150'
+trt_dur_150freq=trt_dur_150/trt_dur_count
+trt_dur_150freq.name='trt_dur_150freq'
+trt_dur_150_450=trt_dur[(trt_dur>0.15)&(trt_dur<0.45)].groupby(by='ImageName').count()
+trt_dur_150_450.name='trt_dur_150_450'
+trt_dur_150_450freq=trt_dur_150_450/trt_dur_count
+trt_dur_150_450freq.name='trt_dur_150_450freq'
+trt_dur_450=trt_dur[trt_dur>=0.45].groupby(by='ImageName').count()
+trt_dur_450.name='trt_dur_450'
+trt_dur_450freq=trt_dur_450/trt_dur_count
+trt_dur_450freq.name='trt_dur_450freq'
+#duration bin2
+trt_dur_300=trt_dur[trt_dur<=0.3].groupby(by='ImageName').count()
+trt_dur_300.name='trt_dur_300'
+trt_dur_300freq=trt_dur_300/trt_dur_count
+trt_dur_300freq.name='trt_dur_300freq'
+trt_dur_300_900=trt_dur[(trt_dur>0.3)&(trt_dur<0.9)].groupby(by='ImageName').count()
+trt_dur_300_900.name='trt_dur_300_900'
+trt_dur_300_900freq=trt_dur_300_900/trt_dur_count
+trt_dur_300_900freq.name='trt_dur_300_900freq'
+trt_dur_900=trt_dur[trt_dur>=0.9].groupby(by='ImageName').count()
+trt_dur_900.name='trt_dur_900'
+trt_dur_900freq=trt_dur_900/trt_dur_count
+trt_dur_900freq.name='trt_dur_900freq'
+
+#displacement from treatment, calculation
+trt_dis_byimg=tracktrtlist.TrackDisplacementLength.groupby(by='ImageName')
+
+trt_dis_count=trt_dis_byimg.count()
+trt_dis_count.name='trt_dis_count'
+trt_dis_avg=trt_dis_byimg.mean()  
+trt_dis_avg.name='trt_dis_avg'
+
+#displacement bin1
+trt_dis=tracktrtlist.TrackDisplacementLength
+trt_dis_400=trt_dis[trt_dis<=0.4].groupby(by='ImageName').count()
+trt_dis_400.name='trt_dis_400'
+trt_dis_400freq=trt_dis_400/trt_dis_count
+trt_dis_400freq.name='trt_dis_400freq'
+trt_dis_400_800=trt_dis[(trt_dis>0.4)&(trt_dis<0.8)].groupby(by='ImageName').count()
+trt_dis_400_800.name='trt_dis_400_800'
+trt_dis_400_800freq=trt_dis_400_800/trt_dis_count
+trt_dis_400_800freq.name='trt_dis_400_800freq'
+trt_dis_800=trt_dis[trt_dis>=0.8].groupby(by='ImageName').count()
+trt_dis_800.name='trt_dis_800'
+trt_dis_800freq=trt_dis_800/trt_dis_count
+trt_dis_800freq.name='trt_dis_800freq'
+
+#displacement bin2
+trt_dis_less200=trt_dis[trt_dis<=0.2].groupby(by='ImageName').count()
+trt_dis_la200=trt_dis[trt_dis>0.2].groupby(by='ImageName').count()
+
+#combine all features of treatment
+var_trt=[trt_ds,
+         trt_dia_avg,
+         trt_dia_300,trt_dia_300freq,
+         trt_dur_avg,
+         trt_dur_150, trt_dur_150_450, trt_dur_450,  
+         trt_dur_300, trt_dur_300_900, trt_dur_900,  
+         trt_dur_150freq, trt_dur_150_450freq, trt_dur_450freq,  
+         trt_dur_300freq, trt_dur_300_900freq, trt_dur_900freq,  
+         trt_dis_avg,  
+         trt_dis_400, trt_dis_400_800, trt_dis_800, 
+         trt_dis_400freq, trt_dis_400_800freq, trt_dis_800freq,
+         trt_dis_less200, trt_dis_la200]
+
+treatment_results=pd.concat(var_trt,axis=1)
+treatment_results['trt']='trt'
+treatment_results.index.name='ImageName'
+treatment_results.reset_index(drop=False,inplace=True)
+treatment_results.set_index(['trt','ImageName'],inplace=True)
+
+treatment_results.to_csv(pypath+ '/treatment_results.csv')
