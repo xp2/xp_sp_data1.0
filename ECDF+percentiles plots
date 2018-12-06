@@ -1,0 +1,37 @@
+import pandas as pd
+import glob
+import matplotlib.pyplot as plt
+import os
+import seaborn as sns
+import numpy as np
+from mlxtend.plotting import ecdf
+
+pypath=os.path.dirname(os.path.abspath('__file__'))
+
+#Control vs trt
+durctrlist=[]
+durcontrol=glob.glob(pypath+'/CTR/*_TrackDuration.csv')
+for file in durcontrol:
+    dur=pd.read_csv(file, usecols=[2])
+    durctrlist.append(dur)
+durctrlist=pd.concat(durctrlist,axis=0,ignore_index=True)
+
+#ecdf
+ctrdur=durctrlist.Tnew3.values
+cx=np.sort(ctrdur)
+cy=np.arange(1, len(cx)+1) / len(cx)
+
+x=np.sort(ctrdur[ctrdur<2]) #exclude several data points (out of millions) that are larger than 2 seconds
+y=np.arange(1, len(cx)+1) / len(cx)
+y=y[:len(x)] #keep the same length as x
+_ = plt.plot(x, y, marker='.', linestyle='-',color='k', label='Control')
+_ = plt.xlabel('Life Time (s)')
+_ = plt.ylabel('ECDF')
+
+#overlay percentiles of the data on the ecdf plot
+percentiles=np.array([25,50,75]) 
+pc=np.percentile(x,percentiles)
+_ = plt.plot(pc, percentiles/100, marker='D', color='r',linestyle='none')
+plt.xticks(np.round(pc,decimals=2),rotation=45)
+plt.margins(0.02)
+plt.show()
