@@ -125,7 +125,14 @@ ctr_dis_800freq.name='ctr_dis_800freq'
 
 #displacement bin2
 ctr_dis_less200=ctr_dis[ctr_dis<=0.2].groupby(by='ImageName').count()
+ctr_dis_less200.name='ctr_dis_less200'
 ctr_dis_la200=ctr_dis[ctr_dis>0.2].groupby(by='ImageName').count()
+ctr_dis_la200.name='ctr_dis_la200'
+ctr_dis_less200freq=ctr_dis_less200/ctr_dis_count
+ctr_dis_less200freq.name='ctr_dis_less200freq'
+ctr_dis_la200freq=ctr_dis_la200/ctr_dis_count
+ctr_dis_la200freq.name='ctr_dis_la200freq'
+
 
 #combine all features of control
 var_ctr=[ctr_ds,
@@ -139,7 +146,8 @@ var_ctr=[ctr_ds,
          ctr_dis_avg,  
          ctr_dis_400, ctr_dis_400_800, ctr_dis_800, 
          ctr_dis_400freq, ctr_dis_400_800freq, ctr_dis_800freq,
-         ctr_dis_less200, ctr_dis_la200]
+         ctr_dis_less200, ctr_dis_la200,
+         ctr_dis_less200freq, ctr_dis_la200freq]
 
 control_results=pd.concat(var_ctr,axis=1)
 control_results['trt']='ctr'
