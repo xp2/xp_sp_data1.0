@@ -123,7 +123,14 @@ trt_dis_800freq.name='trt_dis_800freq'
 
 #displacement bin2
 trt_dis_less200=trt_dis[trt_dis<=0.2].groupby(by='ImageName').count()
+trt_dis_less200.name='trt_dis_less200'
 trt_dis_la200=trt_dis[trt_dis>0.2].groupby(by='ImageName').count()
+trt_dis_la200.name='trt_dis_la200'
+trt_dis_less200freq=trt_dis_less200/trt_dis_count
+trt_dis_less200freq.name='trt_dis_less200freq'
+trt_dis_la200freq=trt_dis_la200/trt_dis_count
+trt_dis_la200freq.name='trt_dis_la200freq'
+
 
 #combine all features of treatment
 var_trt=[trt_ds,
@@ -137,7 +144,8 @@ var_trt=[trt_ds,
          trt_dis_avg,  
          trt_dis_400, trt_dis_400_800, trt_dis_800, 
          trt_dis_400freq, trt_dis_400_800freq, trt_dis_800freq,
-         trt_dis_less200, trt_dis_la200]
+         trt_dis_less200, trt_dis_la200,
+         trt_dis_less200freq, trt_dis_la200freq]
 
 treatment_results=pd.concat(var_trt,axis=1)
 treatment_results['trt']='trt'
